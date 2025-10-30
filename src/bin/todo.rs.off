@@ -1,0 +1,103 @@
+use std::fmt::Display;
+
+#[derive(Debug)]
+enum ToDoError {
+    TaskNotFound(u32),
+}
+
+impl Display for ToDoError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ToDoError::TaskNotFound(id) => write!(f, "ToDo item with id {id} not found"),
+        }
+    }
+}
+
+impl std::error::Error for ToDoError {}
+
+#[derive(Debug)]
+struct Task {
+    id: u32,
+    description: String,
+    completed: bool,
+}
+
+impl Display for Task {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "ID: {id}, Desc: {desc}, Completed: {comp}",
+            id = self.id,
+            desc = self.description,
+            comp = self.completed
+        )
+    }
+}
+
+impl Task {
+    fn new(id: u32, description: String) -> Self {
+        Self {
+            id,
+            description,
+            completed: false,
+        }
+    }
+}
+
+#[derive(Debug)]
+struct ToDo {
+    tasks: Vec<Task>,
+}
+
+impl ToDo {
+    fn new() -> Self {
+        ToDo { tasks: Vec::new() }
+    }
+
+    fn get_max_task_id(&self) -> u32 {
+        match self.tasks.iter().max_by_key(|t| t.id) {
+            Some(t) => t.id + 1,
+            _ => 1,
+        }
+    }
+
+    fn get_task_by_id(&mut self, task_id: u32) -> Result<&mut Task, ToDoError> {
+        match self.tasks.iter_mut().find(|t| t.id == task_id) {
+            Some(t) => Ok(t),
+            None => Err(ToDoError::TaskNotFound(task_id)),
+        }
+    }
+
+    fn add_task(&mut self, description: String) {
+        self.tasks
+            .push(Task::new(self.get_max_task_id(), description));
+    }
+
+    fn complete_task(&mut self, task_id: u32) -> Result<(), ToDoError> {
+        let task = self.get_task_by_id(task_id)?;
+        task.completed = true;
+        Ok(())
+    }
+
+    fn delete_task(&mut self, id: u32) -> Result<Task, ToDoError> {
+        match self.tasks.iter().position(|t| t.id == id) {
+            Some(t) => Ok(self.tasks.remove(t)),
+            None => Err(ToDoError::TaskNotFound(id)),
+        }
+    }
+
+    fn list_tasks(&self) {
+        self.tasks.iter().for_each(|t| println!("{}", t));
+    }
+}
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let mut todo = ToDo::new();
+    todo.add_task("Task 1".to_string());
+    todo.add_task("Task 2".to_string());
+    todo.add_task("Task 3".to_string());
+    todo.complete_task(2)?;
+    todo.delete_task(3)?;
+    todo.list_tasks();
+    Ok(())
+}
