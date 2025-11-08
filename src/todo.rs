@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use serde::{Deserialize, Serialize};
 
-use crate::task::Task;
+use crate::{storage::Storage, task::Task};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub enum ToDoError {
@@ -38,13 +38,22 @@ impl Display for ToDoError {
 }
 
 #[derive(Debug)]
-pub struct ToDo {
-    pub tasks: Vec<Task>,
+pub struct ToDo<S: Storage> {
+    tasks: Vec<Task>,
+    storage: S,
 }
 
-impl ToDo {
-    pub const fn new() -> Self {
-        ToDo { tasks: Vec::new() }
+impl<S: Storage> ToDo<S> {
+    pub fn new(storage: S) -> Result<Self, ToDoError> {
+        Ok(ToDo {
+            tasks: storage.load()?,
+            storage,
+        })
+    }
+
+    pub fn save(&self) -> Result<(), ToDoError> {
+        self.storage.save(&self.tasks)?;
+        Ok(())
     }
 
     pub fn get_max_task_id(&self) -> u32 {
