@@ -1,5 +1,5 @@
-use todo_app::FileStorage;
-use todo_app::ToDo;
+use todo_lib::FileStorage;
+use todo_lib::ToDo;
 
 fn run() -> Result<(), Box<dyn std::error::Error>> {
     let fss = FileStorage::new("tasks.json")?;
