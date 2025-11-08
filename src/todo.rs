@@ -1,8 +1,45 @@
-use crate::task::{Task, ToDoError};
+use std::fmt::Display;
+
+use serde::{Deserialize, Serialize};
+
+use crate::task::Task;
+
+#[derive(Debug, Serialize, Deserialize)]
+pub enum ToDoError {
+    TaskNotFound(u32),
+    StorageError(String),
+    JsonError(String),
+    IoError(String),
+}
+
+impl std::error::Error for ToDoError {}
+
+impl From<std::io::Error> for ToDoError {
+    fn from(value: std::io::Error) -> Self {
+        ToDoError::IoError(value.to_string())
+    }
+}
+
+impl From<serde_json::error::Error> for ToDoError {
+    fn from(value: serde_json::error::Error) -> Self {
+        ToDoError::JsonError(value.to_string())
+    }
+}
+
+impl Display for ToDoError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ToDoError::TaskNotFound(id) => write!(f, "ToDo item with id {id} not found"),
+            ToDoError::StorageError(error) => write!(f, "Storage error: {error}"),
+            ToDoError::JsonError(error) => write!(f, "JSON error: {error}"),
+            ToDoError::IoError(error) => write!(f, "IO error: {error}"),
+        }
+    }
+}
 
 #[derive(Debug)]
 pub struct ToDo {
-    tasks: Vec<Task>,
+    pub tasks: Vec<Task>,
 }
 
 impl ToDo {

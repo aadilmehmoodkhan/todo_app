@@ -1,21 +1,8 @@
 use std::fmt::Display;
 
-#[derive(Debug)]
-pub enum ToDoError {
-    TaskNotFound(u32),
-}
+use serde::{Deserialize, Serialize};
 
-impl Display for ToDoError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            ToDoError::TaskNotFound(id) => write!(f, "ToDo item with id {id} not found"),
-        }
-    }
-}
-
-impl std::error::Error for ToDoError {}
-
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Task {
     pub id: u32,
     pub description: String,
